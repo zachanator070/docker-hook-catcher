@@ -56,6 +56,8 @@ server.post('/restartImage', (req, res) => {
 		});
 	}
 	catch(e){
+		const response = {message: e.message, trace: e.stack};
+		console.log(JSON.stringify(response));
 		return res.status(500).json({message: e.message, trace: e.stack})
 	}
 });
