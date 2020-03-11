@@ -3,8 +3,8 @@ import express from 'express';
 import bodyParser from "body-parser";
 import morgan from 'morgan';
 import Docker from 'dockerode';
+import fetch from 'node-fetch';
 
-const restartCode = process.env.RESTART_CODE;
 const port = process.env.PORT || 7000;
 
 const docker = new Docker({socketPath: '/var/run/docker.sock'});
@@ -14,13 +14,8 @@ server.use(bodyParser.json());
 server.use(morgan('tiny', {}));
 
 server.post('/restartImage', (req, res) => {
-	if(req.body.restartCode !== restartCode){
-		return res.status(401).send('Restart code invalid');
-	}
-	if(!req.body.image){
-		return res.status(404).send('Image name required');
-	}
 
+	const image = req.body.repository.repo_name + ':' + req.body.push_data.tag;
 
 	try{
 		docker.pull(req.body.image, () => {
@@ -32,11 +27,23 @@ server.post('/restartImage', (req, res) => {
 				}
 				containers.forEach(function (containerInfo) {
 
-					if(containerInfo.Image === req.body.image){
+					if(containerInfo.Image === image){
 						containerFound = true;
 						console.log(JSON.stringify(containerInfo));
 						docker.getContainer(containerInfo.Id).stop(() => {
-							return res.json({status: 'success'});
+							fetch(req.body.callback_url, {
+								method: "post",
+								headers: {
+									"Content-type": "application/json",
+									"Accept": "application/json",
+									"Accept-Charset": "utf-8"
+								},
+								body: JSON.stringify({
+									state: "success"
+								})
+							}).then((response) => {
+								return res.json({status: 'success'});
+							});
 						});
 					}
 					containerSearched--;

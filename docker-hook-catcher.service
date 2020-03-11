@@ -9,6 +9,5 @@ WantedBy=multi-user.target
 
 [Service]
 WorkingDirectory=/var/www/docker-hook-catcher
-Environment=RESTART_CODE=supersecret9000
 ExecStart=/usr/bin/npm run start
 Restart=always
