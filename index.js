@@ -16,9 +16,9 @@ server.use(morgan('tiny', {}));
 server.post('/restartImage', (req, res) => {
 	console.log(JSON.stringify(req.body));
 	const image = req.body.repository.repo_name + ':' + req.body.push_data.tag;
-
+	console.log(image);
 	try{
-		docker.pull(req.body.image, () => {
+		docker.pull(image, () => {
 			docker.listContainers(function (err, containers) {
 				let containerSearched = containers.length;
 				let containerFound = false;
@@ -30,7 +30,7 @@ server.post('/restartImage', (req, res) => {
 					if(containerInfo.Image === image){
 						containerFound = true;
 						console.log(JSON.stringify(containerInfo));
-						docker.getContainer(containerInfo.Id).stop(() => {
+						docker.getContainer(containerInfo.Id).kill(() => {
 							fetch(req.body.callback_url, {
 								method: "post",
 								headers: {
