@@ -1,0 +1,28 @@
+{
+  "name": "docker-hook-catcher",
+  "version": "1.0.0",
+  "description": "catches webhooks and restarts containers",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodejs -r esm index.js",
+    "dev": "npx nodemon --exec 'node --inspect=0.0.0.0:9229 -r esm src/server/index.js'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zachanator070/docker-hook-catcher.git"
+  },
+  "author": "zjohnson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zachanator070/docker-hook-catcher/issues"
+  },
+  "homepage": "https://github.com/zachanator070/docker-hook-catcher#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dockerode": "^3.1.0",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "morgan": "^1.9.1"
+  }
+}
