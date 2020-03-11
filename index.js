@@ -14,7 +14,7 @@ server.use(bodyParser.json());
 server.use(morgan('tiny', {}));
 
 server.post('/restartImage', (req, res) => {
-
+	console.log(JSON.stringify(req.body));
 	const image = req.body.repository.repo_name + ':' + req.body.push_data.tag;
 
 	try{
