@@ -1,0 +1,14 @@
+[Unit]
+Description=Tool for restarting docker containers from webhooks
+Documentation=https://github.com/zachanator070/docker-hook-catcher
+After=docker.service
+Wants=docker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+WorkingDirectory=/var/www/docker-hook-catcher
+Environment=RESTART_CODE=supersecret9000
+ExecStart=/usr/bin/npm run start
+Restart=always

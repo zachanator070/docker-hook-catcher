@@ -4,7 +4,6 @@ import bodyParser from "body-parser";
 import morgan from 'morgan';
 import Docker from 'dockerode';
 
-const targetImageName = process.env.IMAGE_NAME;
 const restartCode = process.env.RESTART_CODE;
 const port = process.env.PORT || 7000;
 
