@@ -22,7 +22,7 @@ server.post('/restartImage', (req, res) => {
 			const imagesToDelete = [];
 			for(let localImage of images){
 				let relatedImage = false;
-				for(let tag of localImage.repoTags){
+				for(let tag of localImage.RepoTags){
 					if(tag.split(':'[0] === localImage.split(':'))){
 						relatedImage = true;
 					}
