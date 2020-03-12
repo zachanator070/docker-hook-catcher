@@ -18,8 +18,8 @@ server.post('/restartImage', (req, res) => {
 	const image = req.body.repository.repo_name + ':' + req.body.push_data.tag;
 	console.log(image);
 	try{
-		docker.pull(image, () => {
-			image.on('end', () => {
+		docker.pull(image, (err, stream) => {
+			stream.on('end', () => {
 				docker.listContainers(function (err, containers) {
 					let containerSearched = containers.length;
 					let containerFound = false;
