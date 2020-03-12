@@ -27,7 +27,7 @@ server.post('/restartImage', (req, res) => {
 					let containerSearched = containers.length;
 					let containerFound = false;
 					if(containers.length === 0){
-						return res.status(404).send('Containers with image not found');
+						return res.status(404).send('No containers running to stop');
 					}
 					containers.forEach(function (containerInfo) {
 
