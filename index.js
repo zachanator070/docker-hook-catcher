@@ -32,6 +32,7 @@ server.post('/restartImage', (req, res) => {
 					containers.forEach(function (containerInfo) {
 
 						if(containerInfo.Image === image){
+							console.log(`looking at ${containerInfo.Image}`);
 							containerFound = true;
 							console.log(JSON.stringify(containerInfo));
 							docker.getContainer(containerInfo.Id).kill(() => {
