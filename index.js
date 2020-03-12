@@ -19,40 +19,43 @@ server.post('/restartImage', (req, res) => {
 	console.log(image);
 	try{
 		docker.pull(image, () => {
-			docker.listContainers(function (err, containers) {
-				let containerSearched = containers.length;
-				let containerFound = false;
-				if(containers.length === 0){
-					return res.status(404).send('Containers with image not found');
-				}
-				containers.forEach(function (containerInfo) {
-
-					if(containerInfo.Image === image){
-						containerFound = true;
-						console.log(JSON.stringify(containerInfo));
-						docker.getContainer(containerInfo.Id).kill(() => {
-							fetch(req.body.callback_url, {
-								method: "post",
-								headers: {
-									"Content-type": "application/json",
-									"Accept": "application/json",
-									"Accept-Charset": "utf-8"
-								},
-								body: JSON.stringify({
-									state: "success"
-								})
-							}).then((response) => {
-								return res.json({status: 'success'});
-							});
-						});
-					}
-					containerSearched--;
-					if(containerSearched===0 && !containerFound){
+			image.on('end', () => {
+				docker.listContainers(function (err, containers) {
+					let containerSearched = containers.length;
+					let containerFound = false;
+					if(containers.length === 0){
 						return res.status(404).send('Containers with image not found');
 					}
+					containers.forEach(function (containerInfo) {
 
+						if(containerInfo.Image === image){
+							containerFound = true;
+							console.log(JSON.stringify(containerInfo));
+							docker.getContainer(containerInfo.Id).kill(() => {
+								fetch(req.body.callback_url, {
+									method: "post",
+									headers: {
+										"Content-type": "application/json",
+										"Accept": "application/json",
+										"Accept-Charset": "utf-8"
+									},
+									body: JSON.stringify({
+										state: "success"
+									})
+								}).then((response) => {
+									return res.json({status: 'success'});
+								});
+							});
+						}
+						containerSearched--;
+						if(containerSearched===0 && !containerFound){
+							return res.status(404).send('Containers with image not found');
+						}
+
+					});
 				});
 			});
+
 		});
 	}
 	catch(e){
