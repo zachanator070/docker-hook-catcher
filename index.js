@@ -19,6 +19,9 @@ server.post('/restartImage', (req, res) => {
 	console.log(image);
 	try{
 		docker.pull(image, (err, stream) => {
+			stream.on('data', (chunk) => {
+				console.log(chunk.toString());
+			});
 			stream.on('end', () => {
 				docker.listContainers(function (err, containers) {
 					let containerSearched = containers.length;
