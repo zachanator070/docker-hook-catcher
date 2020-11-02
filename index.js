@@ -15,7 +15,7 @@ server.use(morgan('tiny', {}));
 
 const getContainersToKill = async (image) => {
 	return new Promise((resolve, reject) => {
-		docker.listContainers(function (err, containers) {
+		docker.listContainers(null, function (err, containers) {
 			if(err){
 				reject(err);
 			}
@@ -40,77 +40,44 @@ const getContainersToKill = async (image) => {
 	});
 };
 
-const getImagesToRemove = async (image) => {
-	return new Promise((resolve, reject) => {
-		docker.listContainers(function (err, containers) {
-			if(err){
-				reject(err);
-			}
-			let containerSearched = containers.length;
-			if (containers.length === 0) {
-				reject('No containers running to stop');
-			}
-			let imagesToRemove = [];
-			for (let containerInfo of containers) {
-				console.log(`looking at ${containerInfo.Image}`);
-				if (containerInfo.Image === image) {
-					console.log('found: ' + JSON.stringify(containerInfo));
-					imagesToRemove.push(containerInfo.ImageID);
-
-				}
-				containerSearched--;
-				if (containerSearched === 0) {
-					resolve(imagesToRemove);
-				}
-			}
-		});
-	})
-};
-
 const removeImages = async (imageIds) => {
-	return new Promise((resolve, reject) => {
-		let toRemove = imageIds.length;
-		if(toRemove === 0){
-			resolve()
-		}
-		for(let imageId of imageIds){
-			const image = docker.getImage(imageId);
-			image.remove(() => {
-				toRemove--;
-				if(toRemove === 0){
-					resolve();
-				}
-			});
-		}
+	return new Promise((resolve, _) => {
+		docker.pruneImages(null, () => {
+			resolve();
+		})
 	});
 };
 
 const pullImage = async (image) => {
 	return new Promise((resolve,reject) => {
-		docker.pull(image, (err, stream) => {
-			stream.on('data', (chunk) => {
-				console.log(chunk.toString());
-			});
-			stream.on('end', () => {
-				resolve();
-			});
-			stream.on('error', (err) => {
-				reject(err);
-			});
-		});
+		docker.pull(
+			image,
+			null,
+			(err, stream) => {
+				stream.on('data', (chunk) => {
+					console.log(chunk.toString());
+				});
+				stream.on('end', () => {
+					resolve();
+				});
+				stream.on('error', (err) => {
+					reject(err);
+				});
+			},
+			null);
 	});
 };
 
 const killContainers = async (containerIds) => {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, _) => {
 		let toKill = containerIds.length;
 		if(toKill === 0){
 			resolve()
 		}
 		for(let containerId of containerIds){
 			const container = docker.getContainer(containerId);
-			container.kill(() => {
-				container.remove(() => {
+			container.kill(null, () => {
+				container.remove(null, () => {
 					toKill--;
 					if(toKill === 0){
 						resolve()
@@ -123,6 +90,9 @@ const killContainers = async (containerIds) => {
 
 const confirmCallBack = async (callback_url) => {
 	return new Promise((resolve, reject) => {
+		if(!callback_url){
+			return reject('callback_url param not given');
+		}
 		fetch(callback_url, {
 			method: "post",
 			headers: {
@@ -133,30 +103,31 @@ const confirmCallBack = async (callback_url) => {
 			body: JSON.stringify({
 				state: "success"
 			})
-		}).then((response) => {
+		}).then((_) => {
 			resolve();
 		});
 	})
 };
 
-server.post('/restartImage', (req, res) => {
+server.post('/restartImage', async (req, res) => {
 	console.log(JSON.stringify(req.body));
 	const image = req.body.repository.repo_name + ':' + req.body.push_data.tag;
 	console.log(image);
 
-	(async () => {
+	try {
 		const containersToKill = await getContainersToKill(image);
-		const imagesToRemove = await getImagesToRemove(image);
 		await pullImage(image);
 		await killContainers(containersToKill);
-		await removeImages(imagesToRemove);
+		await removeImages();
 		await confirmCallBack(req.body.callback_url);
 		return res.status(200).json({status: 'success'});
-	})().catch((e) => {
+	}
+	catch(e){
 		const response = {message: e.message, trace: e.stack};
 		console.log(JSON.stringify(response));
 		return res.status(500).json({message: e.message, trace: e.stack});
-	});
+	}
+
 });
 
 server.listen(port, () => {
