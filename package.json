@@ -19,10 +19,10 @@
   },
   "homepage": "https://github.com/zachanator070/docker-hook-catcher#readme",
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.20.1",
     "dockerode": "^3.1.0",
     "esm": "^3.2.25",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "morgan": "^1.9.1",
     "node-fetch": "^2.6.1"
   }
